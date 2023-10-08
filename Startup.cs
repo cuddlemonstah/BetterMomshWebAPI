@@ -31,7 +31,7 @@ public class Startup
             options.AddPolicy("AllowOrigin", builder =>
             {
                 builder
-                    .WithOrigins("*", "http://10.0.2.2:8081") // This allows requests from any origin
+                    .AllowAnyOrigin() // This allows requests from any origin
                     .AllowAnyHeader()
                     .AllowAnyMethod();
             });

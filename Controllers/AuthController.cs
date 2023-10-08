@@ -2,28 +2,26 @@
 using BetterMomshWebAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace BetterMomshWebAPI.Controllers
 {
     [ApiController]
+    [Route("[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly DbHelper _db;
+
         public AuthController(API_DataContext _DataContext)
         {
             _db = new DbHelper(_DataContext);
         }
-        // GET: api/<AuthController>
 
         // GET api/<AuthController>/5
-        [HttpGet("{id}")]
-        [Route("[controller]/UserInfoById/{id}")]
+        [HttpGet("UserInfoById/{id}")]
         public IActionResult Get(int id)
         {
-            ResponseType type = ResponseType.Success;
             try
             {
+                ResponseType type = ResponseType.Success;
                 RegistrationModel data = _db.GetUserById(id);
                 if (data == null)
                 {
@@ -33,22 +31,30 @@ namespace BetterMomshWebAPI.Controllers
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine("Error: " + ex.Message);
+                Console.WriteLine("Inner Exception: " + ex.InnerException?.Message);
                 return BadRequest(ResponseHandler.GetExceptionResponse(ex));
             }
         }
 
-        // POST api/<AuthController>
-        [HttpPost]
-        [Route("[controller]/UserRegister")]
+        // POST api/<AuthController>/UserRegister
+        [HttpPost("UserRegister")]
         public IActionResult PostReg([FromBody] RegistrationModel value)
         {
-
             try
             {
                 ResponseType type = ResponseType.Success;
                 var result = _db.RegisterUser(value);
-                return Unauthorized(ResponseHandler.GetAppResponse(type, result));
+                if (result == "Registered Successfully")
+                {
+                    return Ok(ResponseHandler.GetAppResponse(type, result));
+                }
+                else
+                {
+                    // Add WWW-Authenticate header with challenge
+                    Response.Headers.Add("WWW-Authenticate", "Bearer realm=\"BetterMomshWebAPI\"");
+                    return Unauthorized(ResponseHandler.GetAppResponse(type, result));
+                }
             }
             catch (Exception ex)
             {
@@ -58,16 +64,23 @@ namespace BetterMomshWebAPI.Controllers
             }
         }
 
-        [HttpPost]
-        [Route("[controller]/UserLogin")]
-        public IActionResult Post([FromBody] LoginModel value)
+        [HttpPost("UserLogin")]
+        public IActionResult PostLog([FromBody] LoginModel value)
         {
-
             try
             {
                 ResponseType type = ResponseType.Success;
                 var result = _db.LoginUser(value);
-                return Unauthorized(ResponseHandler.GetAppResponse(type, result));
+                if (result.StartsWith("Logged In"))
+                {
+                    return Ok(ResponseHandler.GetAppResponse(type, result));
+                }
+                else
+                {
+                    // Add WWW-Authenticate header with challenge
+                    Response.Headers.Add("WWW-Authenticate", "Bearer realm=\"BetterMomshWebAPI\"");
+                    return Unauthorized(ResponseHandler.GetAppResponse(type, result));
+                }
             }
             catch (Exception ex)
             {
@@ -76,6 +89,5 @@ namespace BetterMomshWebAPI.Controllers
                 return BadRequest(ResponseHandler.GetExceptionResponse(ex));
             }
         }
-
     }
 }

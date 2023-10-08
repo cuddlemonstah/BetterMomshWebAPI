@@ -34,28 +34,5 @@ namespace BetterMomshWebAPI.Utils
 
         }
 
-        /*
-        * 
-        * Confirmations for Authorizations
-        * */
-        public static string Confirmations(int num, bool reg)
-        {
-            string con;
-
-
-            if (!reg)
-            {
-                string[] login = { "Logged In", "Wrong Password", "Username Doesn't Exist" };
-                con = login[num];
-            }
-            else
-            {
-                string[] register = { "Registered succssfully", "Username already exists", "Username is Required" };
-                con = register[num];
-            }
-
-            return con;
-
-        }
     }
 }

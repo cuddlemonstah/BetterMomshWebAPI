@@ -19,5 +19,6 @@ namespace BetterMomshWebAPI.EFCore
         public string Salt { get; set; }
         // Navigation property to UserInfo
         public userInfo UserInfo { get; set; }
+        public ICollection<BabyBook> BabyBooks { get; set; }
     }
 }

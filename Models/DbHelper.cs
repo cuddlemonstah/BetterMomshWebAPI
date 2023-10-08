@@ -82,38 +82,29 @@ namespace BetterMomshWebAPI.Models
 
         public string LoginUser(LoginModel login)
         {
-            if (!string.IsNullOrEmpty(login.username) || !string.IsNullOrEmpty(login.password))
-            {
-                if (_DataContext.UserCred.Any(user => user.Username.Equals(login.username)))
-                {
-                    userCred user = _DataContext.UserCred.Where(u => u.Username.Equals(login.username)).First();
-
-                    var client_post_hash_password = Convert.ToBase64String(
-                        Common.SaltHashPassword(Encoding.ASCII.GetBytes(login.password),
-                        Convert.FromBase64String(user.Salt)));
-                    if (client_post_hash_password.Equals(user.Password))
-                    {
-                        var userID = new
-                        {
-                            user.user_id,
-                        };
-                        return "Logged In" + userID;
-                    }
-                    else
-                    {
-                        return "Wrong Password";
-                    }
-                }
-                else
-                {
-                    return "Username Doesn't Exist";
-                }
-            }
-            else
+            if (string.IsNullOrEmpty(login.username) || string.IsNullOrEmpty(login.password))
             {
                 return "Username/Password is required";
             }
-        }
 
+            var user = _DataContext.UserCred.FirstOrDefault(u => u.Username.Equals(login.username));
+
+            if (user == null)
+            {
+                return "Username Doesn't Exist";
+            }
+
+            var clientPostHashPassword = Convert.ToBase64String(Common.SaltHashPassword(Encoding.ASCII.GetBytes(login.password), Convert.FromBase64String(user.Salt)));
+
+            if (clientPostHashPassword.Equals(user.Password))
+            {
+                var userID = new { user.user_id };
+                return "Logged In" + userID;
+            }
+            else
+            {
+                return "Wrong Password";
+            }
+        }
     }
 }
