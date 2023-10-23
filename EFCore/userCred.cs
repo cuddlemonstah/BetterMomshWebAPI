@@ -7,7 +7,7 @@ namespace BetterMomshWebAPI.EFCore
     public class userCred
     {
         [Key]
-        public long user_id { get; set; }
+        public Guid user_id { get; set; }
 
         [Required]
         public string Username { get; set; }
@@ -18,7 +18,10 @@ namespace BetterMomshWebAPI.EFCore
         [Required]
         public string Salt { get; set; }
         // Navigation property to UserInfo
+        [Required]
+        public string Role { get; set; }
         public userInfo UserInfo { get; set; }
+        public RefreshTokens RefreshTokens { get; set; }
         public ICollection<BabyBook> BabyBooks { get; set; }
     }
 }

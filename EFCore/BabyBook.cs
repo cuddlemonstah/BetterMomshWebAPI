@@ -11,7 +11,7 @@ namespace BetterMomshWebAPI.EFCore
         public DateOnly Created { get; set; }
 
         [ForeignKey("userCred")]
-        public long user_id { get; set; }
+        public Guid user_id { get; set; }
 
         public userCred UserCred { get; set; }
 

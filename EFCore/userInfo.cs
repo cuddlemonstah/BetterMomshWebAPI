@@ -8,7 +8,7 @@ namespace BetterMomshWebAPI.EFCore
     {
         [Key]
         [ForeignKey("userCred")]
-        public long user_id { get; set; }
+        public Guid user_id { get; set; }
 
         [MaxLength(255)]
         public string FirstName { get; set; }
@@ -33,7 +33,7 @@ namespace BetterMomshWebAPI.EFCore
         public string Address { get; set; }
 
         [Column(TypeName = "numeric(12,2)")]
-        public decimal ContactNumber { get; set; }
+        public decimal? ContactNumber { get; set; }
 
         public userCred userCred { get; set; }
 

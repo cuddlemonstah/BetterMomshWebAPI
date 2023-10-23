@@ -1,5 +1,7 @@
 ﻿using BetterMomshWebAPI.EFCore;
+using BetterMomshWebAPI.Models.JWT_Models;
 using BetterMomshWebAPI.Utils;
+using BetterMomshWebAPI.Utils.Services;
 using System.Text;
 
 namespace BetterMomshWebAPI.Models
@@ -7,27 +9,14 @@ namespace BetterMomshWebAPI.Models
     public class DbHelper
     {
 
+        private readonly RefreshTokenGenerator _refreshTokenGenerator;
         private API_DataContext _DataContext;
         public DbHelper(API_DataContext DataContext)
         {
 
             _DataContext = DataContext;
         }
-
-
-        public RegistrationModel GetUserById(int id)
-        {
-            RegistrationModel response = new RegistrationModel();
-            var dataList = _DataContext.UserInfo.Where(d => id.Equals(id)).FirstOrDefault();
-            return new RegistrationModel()
-            {
-                FirstName = dataList.FirstName,
-                LastName = dataList.LastName,
-                Occupation = dataList.Occupation,
-            };
-
-        }
-        //Serves as POST/PUT/PATCH
+        //Serves as POST for Register User
         public string RegisterUser(RegistrationModel registration)
         {
             if (!string.IsNullOrEmpty(registration.username))
@@ -42,6 +31,7 @@ namespace BetterMomshWebAPI.Models
                     userCred UserAuth = new userCred
                     {
                         Username = registration.username,
+                        Role = registration.Role
                     };
                     // Generate a salt
                     UserAuth.Salt = Convert.ToBase64String(Common.GetRandomSalt(16)); // Implement salt generation as needed
@@ -49,7 +39,8 @@ namespace BetterMomshWebAPI.Models
                     // Hash the password using the generated salt
                     UserAuth.Password = Convert.ToBase64String(Common.SaltHashPassword(Encoding.ASCII.GetBytes(registration.password), Convert.FromBase64String(UserAuth.Salt)));
 
-                    var utcBirthdate = DateTime.SpecifyKind(registration.Birthdate, DateTimeKind.Utc);
+                    var utcBirthdate = DateTime.SpecifyKind(registration.Birthdate.GetValueOrDefault(), DateTimeKind.Utc);
+
                     var UserInfo = new userInfo
                     {
                         FirstName = registration.FirstName,
@@ -63,12 +54,19 @@ namespace BetterMomshWebAPI.Models
                         ContactNumber = registration.ContactNumber
                     };
 
+                    var refreshToken = new RefreshTokens
+                    {
+                        user_id = UserAuth.user_id
+                    };
+
                     //establish Relationship
                     UserAuth.UserInfo = UserInfo;
+                    UserAuth.RefreshTokens = refreshToken;
 
                     //Add entities in database
                     _DataContext.UserCred.Add(UserAuth);
                     _DataContext.UserInfo.Add(UserInfo);
+                    _DataContext.RefreshTokens.Add(refreshToken);
                     _DataContext.SaveChanges();
                     return "Registered Successfully";
                 }
@@ -80,31 +78,155 @@ namespace BetterMomshWebAPI.Models
             }
         }
 
-        public string LoginUser(LoginModel login)
+        //POST Login User
+        public UserModel Authenticate(LoginModel login)
         {
-            if (string.IsNullOrEmpty(login.username) || string.IsNullOrEmpty(login.password))
-            {
-                return "Username/Password is required";
-            }
-
-            var user = _DataContext.UserCred.FirstOrDefault(u => u.Username.Equals(login.username));
+            var user = _DataContext.UserCred.FirstOrDefault(o => o.Username.ToLower().Equals(login.username.ToLower()));
+            var userInfo = _DataContext.UserInfo.FirstOrDefault(o => o.user_id.Equals(user.user_id));
 
             if (user == null)
             {
-                return "Username Doesn't Exist";
+                // User not found
+                return null;
             }
 
             var clientPostHashPassword = Convert.ToBase64String(Common.SaltHashPassword(Encoding.ASCII.GetBytes(login.password), Convert.FromBase64String(user.Salt)));
 
             if (clientPostHashPassword.Equals(user.Password))
             {
-                var userID = new { user.user_id };
-                return "Logged In" + userID;
+                UserModel userModel = new UserModel
+                {
+                    username = user.Username,
+                    Role = user.Role,
+                    FirstName = userInfo.FirstName,
+                    MiddleName = userInfo.MiddleName,
+                    LastName = userInfo.LastName,
+                    Birthdate = userInfo.Birthdate,
+                    ContactNumber = userInfo.ContactNumber,
+                    Address = userInfo.Address,
+                    Occupation = userInfo.Occupation,
+                    Religion = userInfo.Religion,
+                    RelationshipStatus = userInfo.RelationshipStatus
+                    // Map other properties
+                };
+
+                return userModel; // Assuming that your RegistrationModel matches the user object
             }
             else
             {
-                return "Wrong Password";
+                // Wrong password
+                return null;
             }
+        }
+
+        //
+        //
+        //
+        //Baby Book Controller (Journals, Creation of BabyBook)
+        //in every baby book creates 3 trimester data
+        //in every trimester creates 3 month data
+        //
+        public string CreateBabyBook(BabyBookModel babyBook)
+        {
+            var user = _DataContext.UserCred.FirstOrDefault(u => u.user_id.Equals(babyBook.user_id));
+
+            if (user == null)
+            {
+                return "User Doesn't Exist";
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(babyBook.Title))
+                {
+                    BabyBook bBook = new BabyBook
+                    {
+                        Title = babyBook.Title,
+                        Created = DateOnly.FromDateTime(DateTime.Now),
+                        user_id = babyBook.user_id
+                    };
+                    // Add the BabyBook entity to the database
+                    _DataContext.BabyBook.Add(bBook);
+                    _DataContext.SaveChanges();
+
+                    // Create and associate trimesters with unique IDs
+                    for (int i = 1; i <= 3; i++)
+                    {
+                        Trimester trimester = new Trimester
+                        {
+                            BookId = bBook.BookId, // Set the foreign key to associate with the BabyBook
+                            Trimesters = i + " Trimester",
+                        };
+                        // Add the trimester to the database
+                        _DataContext.trimesters.Add(trimester);
+                    }
+                    _DataContext.SaveChanges();
+
+                    // Create months associated with each trimester
+                    foreach (var trimester in _DataContext.trimesters.Where(t => t.BookId == bBook.BookId))
+                    {
+                        for (int j = 1; j <= 3; j++)
+                        {
+                            Months month = new Months
+                            {
+                                Month = "Month " + j,
+                                TrimesterId = trimester.TrimesterId
+                            };
+                            _DataContext.months.Add(month);
+                        }
+                    }
+                    _DataContext.SaveChanges();
+                    return "Baby Book Added";
+                }
+                else
+                {
+                    return "Title is Required";
+                }
+            }
+        }
+
+        //
+        //
+        //
+        //Adding Journal Components
+        //
+        //
+        //
+        public string AddJournal(JournalModel journal)
+        {
+            var monthid = _DataContext.months.FirstOrDefault(u => u.MonthId.Equals(journal.MonthId));
+            var bookid = _DataContext.BabyBook.FirstOrDefault(u => u.BookId.Equals(journal.BookId));
+            DateTime localDateTime = DateTime.Now; // Your local DateTime
+            DateTime utcDateTime = localDateTime.ToUniversalTime(); // Convert to UTC
+            if (bookid == null || monthid == null)
+            {
+                return "Book Data doesn't exist";
+            }
+            else
+            {
+                Journal journ = new Journal
+                {
+                    JournalName = journal.JournalName,
+                    journalEntry = journal.JournalEntry,
+                    Entry_Date = utcDateTime,
+                    PhotoData = journal.PhotoData,
+                    BookId = journal.BookId,
+                    MonthId = journal.MonthId
+                };
+                _DataContext.journal.Add(journ);
+                _DataContext.SaveChanges();
+                return "Journal Added";
+            }
+        }
+        public BabyBookModel GetBbookById(int id)
+        {
+            BabyBookModel response = new BabyBookModel();
+            var dataList = _DataContext.BabyBook.Where(d => id.Equals(id)).FirstOrDefault();
+            return new BabyBookModel()
+            {
+                Title = dataList.Title,
+                Created = dataList.Created,
+                user_id = dataList.user_id
+            };
         }
     }
 }

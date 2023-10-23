@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BetterMomshWebAPI.Migrations
 {
     [DbContext(typeof(API_DataContext))]
-    [Migration("20231008170830_NewInitialDatabase")]
-    partial class NewInitialDatabase
+    [Migration("20231022115208_PatientIniDatabase")]
+    partial class PatientIniDatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,8 +40,8 @@ namespace BetterMomshWebAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("user_id")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("user_id")
+                        .HasColumnType("uuid");
 
                     b.HasKey("BookId");
 
@@ -110,6 +110,32 @@ namespace BetterMomshWebAPI.Migrations
                     b.ToTable("Months");
                 });
 
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.RefreshTokens", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("TokenCreated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("TokenExpired")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("user_id")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("user_id")
+                        .IsUnique();
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.Trimester", b =>
                 {
                     b.Property<long>("TrimesterId")
@@ -134,13 +160,15 @@ namespace BetterMomshWebAPI.Migrations
 
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.userCred", b =>
                 {
-                    b.Property<long>("user_id")
+                    b.Property<Guid>("user_id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseSerialColumn(b.Property<long>("user_id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -159,8 +187,8 @@ namespace BetterMomshWebAPI.Migrations
 
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.userInfo", b =>
                 {
-                    b.Property<long>("user_id")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("user_id")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Address")
                         .IsRequired()
@@ -169,7 +197,7 @@ namespace BetterMomshWebAPI.Migrations
                     b.Property<DateTime>("Birthdate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<decimal>("ContactNumber")
+                    b.Property<decimal?>("ContactNumber")
                         .HasColumnType("numeric(12,2)");
 
                     b.Property<string>("FirstName")
@@ -248,6 +276,17 @@ namespace BetterMomshWebAPI.Migrations
                     b.Navigation("trim");
                 });
 
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.RefreshTokens", b =>
+                {
+                    b.HasOne("BetterMomshWebAPI.EFCore.userCred", "userCred")
+                        .WithOne("RefreshTokens")
+                        .HasForeignKey("BetterMomshWebAPI.EFCore.RefreshTokens", "user_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("userCred");
+                });
+
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.Trimester", b =>
                 {
                     b.HasOne("BetterMomshWebAPI.EFCore.BabyBook", "babyBook")
@@ -290,6 +329,9 @@ namespace BetterMomshWebAPI.Migrations
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.userCred", b =>
                 {
                     b.Navigation("BabyBooks");
+
+                    b.Navigation("RefreshTokens")
+                        .IsRequired();
 
                     b.Navigation("UserInfo")
                         .IsRequired();

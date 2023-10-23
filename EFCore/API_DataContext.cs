@@ -8,7 +8,8 @@ namespace BetterMomshWebAPI.EFCore
             : base(options)
         {
         }
-        public DbSet<userCred> UserCred { get; set; }
+        public DbSet<userCred>? UserCred { get; set; }
+        public DbSet<RefreshTokens>? RefreshTokens { get; set; }
         public DbSet<userInfo> UserInfo { get; set; }
         public DbSet<BabyBook> BabyBook { get; set; }
         public DbSet<Trimester> trimesters { get; set; }
@@ -24,6 +25,11 @@ namespace BetterMomshWebAPI.EFCore
                 .HasOne(uc => uc.UserInfo)
                 .WithOne(ui => ui.userCred) // Assuming UserInfo has a reference to UserCred
                 .HasForeignKey<userInfo>(ui => ui.user_id);
+
+            modelBuilder.Entity<userCred>()
+                .HasOne(uc => uc.RefreshTokens)
+                .WithOne(ui => ui.userCred) // Assuming RefreshToken has a reference to UserCred
+                .HasForeignKey<RefreshTokens>(ui => ui.user_id);
 
             // One-to-Many Relationship Between UserCred and BabyBook
             modelBuilder.Entity<BabyBook>()

@@ -1,6 +1,12 @@
 ﻿using BetterMomshWebAPI.EFCore;
 using BetterMomshWebAPI.Models;
+using BetterMomshWebAPI.Models.Configuration;
+using BetterMomshWebAPI.Utils.Services;
+using BetterMomshWebAPI.Utils.TokenValidator;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 public class Startup
 {
@@ -13,7 +19,33 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = Configuration["Authentication:Issuer"],
+                        ValidAudience = Configuration["Authentication:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Authentication:Key"]))
+                    };
+                });
+        services.AddAuthorization();
         services.AddControllers();
+
+        AuthenticationConfiguration authenticationConfiguration = new AuthenticationConfiguration();
+        Configuration.Bind("Authentication", authenticationConfiguration);
+        services.AddSingleton(authenticationConfiguration);
+
+        services.AddSingleton<AccessTokenGenerator>();
+        services.AddSingleton<TokenGenerator>();
+        services.AddSingleton<RefreshTokenGenerator>();
+        services.AddSingleton<RefreshTokenValidator>();
+
         services.AddScoped<DbHelper>();
         services.AddLogging(configure =>
         {
@@ -40,6 +72,7 @@ public class Startup
 
     public void Configure(IApplicationBuilder app)
     {
+        app.UseAuthentication();
         app.UseCors("AllowOrigin");
         app.UseRouting();
         app.UseAuthorization();

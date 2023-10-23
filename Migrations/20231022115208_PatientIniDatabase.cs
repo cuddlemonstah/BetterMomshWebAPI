@@ -7,11 +7,26 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BetterMomshWebAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class NewInitialDatabase : Migration
+    public partial class PatientIniDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "user_credential",
+                columns: table => new
+                {
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Username = table.Column<string>(type: "text", nullable: false),
+                    Password = table.Column<string>(type: "text", nullable: false),
+                    Salt = table.Column<string>(type: "text", nullable: false),
+                    Role = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_user_credential", x => x.user_id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "BabyBook",
                 columns: table => new
@@ -20,13 +35,60 @@ namespace BetterMomshWebAPI.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
                     Title = table.Column<string>(type: "text", nullable: false),
                     Created = table.Column<DateOnly>(type: "date", nullable: false),
-                    user_id = table.Column<long>(type: "bigint", nullable: false)
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_BabyBook", x => x.BookId);
                     table.ForeignKey(
                         name: "FK_BabyBook_user_credential_user_id",
+                        column: x => x.user_id,
+                        principalTable: "user_credential",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    RefreshToken = table.Column<string>(type: "text", nullable: true),
+                    TokenCreated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    TokenExpired = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RefreshTokens_user_credential_user_id",
+                        column: x => x.user_id,
+                        principalTable: "user_credential",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "user_profile",
+                columns: table => new
+                {
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    FirstName = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    LastName = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    MiddleName = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Birthdate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Religion = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Occupation = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    RelationshipStatus = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Address = table.Column<string>(type: "text", nullable: false),
+                    ContactNumber = table.Column<decimal>(type: "numeric(12,2)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_user_profile", x => x.user_id);
+                    table.ForeignKey(
+                        name: "FK_user_profile_user_credential_user_id",
                         column: x => x.user_id,
                         principalTable: "user_credential",
                         principalColumn: "user_id",
@@ -124,6 +186,12 @@ namespace BetterMomshWebAPI.Migrations
                 column: "TrimesterId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_user_id",
+                table: "RefreshTokens",
+                column: "user_id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Trimester_BookId",
                 table: "Trimester",
                 column: "BookId");
@@ -136,6 +204,12 @@ namespace BetterMomshWebAPI.Migrations
                 name: "Journals");
 
             migrationBuilder.DropTable(
+                name: "RefreshTokens");
+
+            migrationBuilder.DropTable(
+                name: "user_profile");
+
+            migrationBuilder.DropTable(
                 name: "Months");
 
             migrationBuilder.DropTable(
@@ -143,6 +217,9 @@ namespace BetterMomshWebAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "BabyBook");
+
+            migrationBuilder.DropTable(
+                name: "user_credential");
         }
     }
 }

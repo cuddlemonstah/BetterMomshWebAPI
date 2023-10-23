@@ -1,4 +1,4 @@
-﻿namespace BetterMomshWebAPI.Models
+﻿namespace BetterMomshWebAPI.Models.Responses
 {
     public class ResponseHandler
     {
