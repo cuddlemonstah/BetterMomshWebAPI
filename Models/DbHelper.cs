@@ -2,6 +2,7 @@
 using BetterMomshWebAPI.Models.JWT_Models;
 using BetterMomshWebAPI.Utils;
 using BetterMomshWebAPI.Utils.Services;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 
 namespace BetterMomshWebAPI.Models
@@ -228,5 +229,58 @@ namespace BetterMomshWebAPI.Models
                 user_id = dataList.user_id
             };
         }
+
+        public string AddRefreshToken(RefreshToken token)
+        {
+           if(token == null)
+            {
+                return "ID doesn't exist";
+            }
+            else
+            {
+                RefreshTokens rToken = new RefreshTokens
+                {
+                    RefreshToken = token.Token,
+                    TokenCreated = token.Created,
+                    TokenExpired = token.Expires
+                };
+                return "Refresh Token Added";
+            }
+        }
+        public bool UpdateRefreshToken(Guid? userId, RefreshToken newRefreshToken)
+        {
+            try
+            {
+                var user = _DataContext.RefreshTokens.FirstOrDefault(u => u.user_id == userId);
+                if (user != null)
+                {
+                    user.RefreshToken = newRefreshToken.Token;
+                    user.TokenCreated = newRefreshToken.Created.ToUniversalTime();
+                    user.TokenExpired = newRefreshToken.Expires.ToUniversalTime();
+
+                    _DataContext.SaveChanges();
+                    return true; // Refresh token updated successfully
+                }
+
+                return false; // User not found
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions, log errors, etc.
+                Console.WriteLine("Error: " + ex);
+                return false; // Failed to update the  refresh token
+            }
+        }
+        public Guid? getUserID(string value)
+        {
+            var user = _DataContext.UserCred.FirstOrDefault(u => u.Username == value);
+            if (user != null)
+            {
+                return user.user_id; ;
+            }
+            else
+                return null;
+        }
+
     }
 }
