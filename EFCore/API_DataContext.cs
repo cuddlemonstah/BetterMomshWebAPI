@@ -15,11 +15,14 @@ namespace BetterMomshWebAPI.EFCore
         public DbSet<Trimester> trimesters { get; set; }
         public DbSet<Months> months { get; set; }
         public DbSet<Journal> journal { get; set; }
+        public DbSet<Weeks> week { get; set; }
+        public DbSet<TokenBlacklist> blacklist { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.UseSerialColumns();
-
+            modelBuilder.Entity<TokenBlacklist>()
+                .HasKey(x => x.Id);
             // One-to-One Relationship Between UserCred and UserInfo
             modelBuilder.Entity<userCred>()
                 .HasOne(uc => uc.UserInfo)
@@ -46,16 +49,25 @@ namespace BetterMomshWebAPI.EFCore
                 .HasOne(t => t.trim)
                 .WithMany(b => b.mon) // Assuming Trimesters has a collection of Months
                 .HasForeignKey(t => t.TrimesterId);
+            modelBuilder.Entity<Weeks>()
+                .HasOne(t => t.mon)
+                .WithMany(b => b.weeks) // Assuming Months has a collection of Weeks
+                .HasForeignKey(t => t.MonthId);
             modelBuilder.Entity<Journal>()
-                .HasOne(j => j.mon)
-                .WithMany(m => m.journals)  // Assuming Month has a collection of Journals
-                .HasForeignKey(j => j.MonthId);
+                .HasOne(j => j.week)
+                .WithMany(m => m.journal)  // Assuming Weeks has a collection of Journals
+                .HasForeignKey(j => j.weekId);
 
             modelBuilder.Entity<Journal>()
                 .HasOne(j => j.babyBook)
                 .WithMany(b => b.journal)  // Assuming BabyBook has a collection of Journals
                 .HasForeignKey(j => j.BookId);
 
+        }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            // This method will be used to configure the context options.
+            optionsBuilder.EnableSensitiveDataLogging(); // Add this line to enable sensitive data logging
         }
     }
 }

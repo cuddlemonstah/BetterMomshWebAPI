@@ -23,20 +23,60 @@ namespace BetterMomshWebAPI.Utils.Services
 
         public string Generate(UserModel user)
         {
-            var claims = new[]
+            var claims = new List<Claim>();
+
+            if (user != null)
             {
-                new Claim(ClaimTypes.Email, user.username),
-                new Claim(ClaimTypes.GivenName, user.FirstName),
-                new Claim("MiddleName", user.MiddleName),
-                new Claim(ClaimTypes.Surname, user.LastName),
-                new Claim(ClaimTypes.Role, user.Role),
-                new Claim(ClaimTypes.DateOfBirth, user.Birthdate.ToString()),
-                new Claim(ClaimTypes.MobilePhone, user.ContactNumber.ToString()),
-                new Claim(ClaimTypes.StreetAddress, user.Address),
-                new Claim("Occupation", user.Occupation),
-                new Claim("Religion", user.Religion),
-                new Claim("Relationship", user.RelationshipStatus)
-            };
+                if (user.user_id != null)
+                {
+                    claims.Add(new Claim("Id", user.user_id.ToString()));
+                }
+                if (user.username != null)
+                {
+                    claims.Add(new Claim(ClaimTypes.Email, user.username));
+                }
+                if (user.FirstName != null)
+                {
+                    claims.Add(new Claim(ClaimTypes.GivenName, user.FirstName));
+                }
+                if (user.MiddleName != null)
+                {
+                    claims.Add(new Claim("MiddleName", user.MiddleName));
+                }
+                if (user.LastName != null)
+                {
+                    claims.Add(new Claim(ClaimTypes.Surname, user.LastName));
+                }
+                if (user.Role != null)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, user.Role));
+                }
+                if (user.Birthdate != null)
+                {
+                    claims.Add(new Claim(ClaimTypes.DateOfBirth, user.Birthdate.ToString()));
+                }
+                if (user.ContactNumber != null)
+                {
+                    claims.Add(new Claim(ClaimTypes.MobilePhone, user.ContactNumber.ToString()));
+                }
+                if (user.Address != null)
+                {
+                    claims.Add(new Claim(ClaimTypes.StreetAddress, user.Address));
+                }
+                if (user.Occupation != null)
+                {
+                    claims.Add(new Claim("Occupation", user.Occupation));
+                }
+                if (user.Religion != null)
+                {
+                    claims.Add(new Claim("Religion", user.Religion));
+                }
+                if (user.RelationshipStatus != null)
+                {
+                    claims.Add(new Claim("Relationship", user.RelationshipStatus));
+                }
+            }
+
             return _tokenGenerator.GenerateToken(_configuration.Key,
                 _configuration.Issuer,
                 _configuration.Audience,

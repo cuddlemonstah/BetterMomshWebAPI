@@ -1,6 +1,8 @@
 ﻿using BetterMomshWebAPI.EFCore;
 using BetterMomshWebAPI.Models;
 using BetterMomshWebAPI.Models.Configuration;
+using BetterMomshWebAPI.Models.Database_Repository;
+using BetterMomshWebAPI.Utils;
 using BetterMomshWebAPI.Utils.Services;
 using BetterMomshWebAPI.Utils.TokenValidator;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -43,10 +45,11 @@ public class Startup
 
         services.AddSingleton<AccessTokenGenerator>();
         services.AddSingleton<TokenGenerator>();
+        services.AddTransient<Authenticator>();
         services.AddSingleton<RefreshTokenGenerator>();
         services.AddSingleton<RefreshTokenValidator>();
-
         services.AddScoped<DbHelper>();
+        services.AddScoped<ITokenBlacklistService, DbHelper>();
         services.AddLogging(configure =>
         {
             configure.AddConsole(); // Add console logging
@@ -76,6 +79,7 @@ public class Startup
         app.UseCors("AllowOrigin");
         app.UseRouting();
         app.UseAuthorization();
+        app.UseMiddleware<JwtTokenBlacklistMiddleware>();
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllerRoute(

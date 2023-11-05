@@ -65,9 +65,6 @@ namespace BetterMomshWebAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("MonthId")
-                        .HasColumnType("bigint");
-
                     b.Property<byte[]>("PhotoData")
                         .IsRequired()
                         .HasColumnType("bytea");
@@ -76,11 +73,14 @@ namespace BetterMomshWebAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<long>("weekId")
+                        .HasColumnType("bigint");
+
                     b.HasKey("journalId");
 
                     b.HasIndex("BookId");
 
-                    b.HasIndex("MonthId");
+                    b.HasIndex("weekId");
 
                     b.ToTable("Journals");
                 });
@@ -133,6 +133,23 @@ namespace BetterMomshWebAPI.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.TokenBlacklist", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseSerialColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TokenBlacklist");
+                });
+
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.Trimester", b =>
                 {
                     b.Property<long>("TrimesterId")
@@ -153,6 +170,28 @@ namespace BetterMomshWebAPI.Migrations
                     b.HasIndex("BookId");
 
                     b.ToTable("Trimester");
+                });
+
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Weeks", b =>
+                {
+                    b.Property<long>("weekId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseSerialColumn(b.Property<long>("weekId"));
+
+                    b.Property<long>("MonthId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("week_number")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("weekId");
+
+                    b.HasIndex("MonthId");
+
+                    b.ToTable("Weeks");
                 });
 
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.userCred", b =>
@@ -251,15 +290,15 @@ namespace BetterMomshWebAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BetterMomshWebAPI.EFCore.Months", "mon")
-                        .WithMany("journals")
-                        .HasForeignKey("MonthId")
+                    b.HasOne("BetterMomshWebAPI.EFCore.Weeks", "week")
+                        .WithMany("journal")
+                        .HasForeignKey("weekId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("babyBook");
 
-                    b.Navigation("mon");
+                    b.Navigation("week");
                 });
 
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.Months", b =>
@@ -295,6 +334,17 @@ namespace BetterMomshWebAPI.Migrations
                     b.Navigation("babyBook");
                 });
 
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Weeks", b =>
+                {
+                    b.HasOne("BetterMomshWebAPI.EFCore.Months", "mon")
+                        .WithMany("weeks")
+                        .HasForeignKey("MonthId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("mon");
+                });
+
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.userInfo", b =>
                 {
                     b.HasOne("BetterMomshWebAPI.EFCore.userCred", "userCred")
@@ -315,12 +365,17 @@ namespace BetterMomshWebAPI.Migrations
 
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.Months", b =>
                 {
-                    b.Navigation("journals");
+                    b.Navigation("weeks");
                 });
 
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.Trimester", b =>
                 {
                     b.Navigation("mon");
+                });
+
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Weeks", b =>
+                {
+                    b.Navigation("journal");
                 });
 
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.userCred", b =>

@@ -2,11 +2,10 @@
 using BetterMomshWebAPI.Models;
 using BetterMomshWebAPI.Models.JWT_Models;
 using BetterMomshWebAPI.Models.Responses;
-using BetterMomshWebAPI.Utils.Services;
+using BetterMomshWebAPI.Utils;
 using BetterMomshWebAPI.Utils.TokenValidator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 
 namespace BetterMomshWebAPI.Controllers
 {
@@ -15,16 +14,15 @@ namespace BetterMomshWebAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly DbHelper _db;
-        private readonly AccessTokenGenerator _accessTokenGenerator;
-        private readonly RefreshTokenGenerator _refreshTokenGenerator;
+        private readonly Authenticator _authenticator;
         private readonly RefreshTokenValidator _refreshTokenValidator;
-        private readonly List<RefreshToken> _refreshTokens;
-        public AuthController(API_DataContext _DataContext, AccessTokenGenerator accessTokenGenerator, RefreshTokenGenerator refreshTokenGenerator,
-            RefreshTokenValidator refreshTokenValidator)
+
+        public AuthController(API_DataContext _DataContext,
+            RefreshTokenValidator refreshTokenValidator,
+            Authenticator authenticator)
         {
             _db = new DbHelper(_DataContext);
-            _accessTokenGenerator = accessTokenGenerator;
-            _refreshTokenGenerator = refreshTokenGenerator;
+            _authenticator = authenticator;
             _refreshTokenValidator = refreshTokenValidator;
         }
 
@@ -70,31 +68,8 @@ namespace BetterMomshWebAPI.Controllers
                 if (user != null)
                 {
 
-                    var accesstoken = _accessTokenGenerator.Generate(user);
-                    var refreshtoken = _refreshTokenGenerator.GenerateToken();
-
-                    RefreshToken token = new()
-                    { 
-                        Token = refreshtoken,
-                        Created = DateTime.Now,
-                        Expires = DateTime.Now.AddMinutes(1880)
-                    };
-                    var id = _db.getUserID(value.username);
-                    bool updateResult = _db.UpdateRefreshToken(id, token);
-
-                    if (updateResult)
-                    {
-                        return Ok(new AuthenticatedUserResponses()
-                        {
-                            AccessToken = accesstoken,
-                            RefreshToken = refreshtoken
-                        });
-                    }
-                    else
-                    {
-                        return BadRequest(new ErrorResponse(updateResult.ToString()));
-                    }
-                    
+                    AuthenticatedUserResponses response = await _authenticator.Authenticate(user);
+                    return Ok(response);
                 }
                 else
                 {
@@ -113,31 +88,48 @@ namespace BetterMomshWebAPI.Controllers
                 return BadRequest(ResponseHandler.GetExceptionResponse(ex));
             }
         }
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] LogoutModel model)
+        {
+            // Ensure that the token is not null/empty
+            if (string.IsNullOrEmpty(model.Token))
+            {
+                return BadRequest("Invalid token");
+            }
 
+            // Add the token to the blacklist
+            await _db.AddToBlacklistAsync(model.Token);
+            return Ok("Token added to the blacklist");
+        }
 
-         /*[HttpPost("refresh")]
-         public async Task<IActionResult> Refresh([FromBody] RefreshRequest refreshRequest)
-         {
-             if (!ModelState.IsValid)
-             {
-                 return BadRequestModelState();
-             }
-             bool isValidRefreshToken = _refreshTokenValidator.Validate(refreshRequest.RefreshToken);
-             if (!isValidRefreshToken)
-             {
-                 return BadRequest(new ErrorResponse("Invalid refresh token"));
-             }
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequest refreshRequest)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequestModelState();
+            }
+            bool isValidRefreshToken = _refreshTokenValidator.Validate(refreshRequest.RefreshToken);
+            if (!isValidRefreshToken)
+            {
+                return BadRequest(new ErrorResponse("Invalid refresh token"));
+            }
 
-            RefreshToken refreshTokenDTO = _refreshTokens.FirstOrDefault(r => r.Token == refreshRequest.RefreshToken);
-            if(refreshTokenDTO == null)
+            RefreshTokens refreshTokenDTO = await _db.GetByToken(refreshRequest.RefreshToken);
+            if (refreshTokenDTO == null)
             {
                 return NotFound(new ErrorResponse("Invalid refresh token."));
 
             }
-            
-         }*/
-
-
+            UserModel user = await _db.getUserID(refreshTokenDTO.user_id);
+            if (user == null)
+            {
+                return NotFound(new ErrorResponse("User Not Found"));
+            }
+            AuthenticatedUserResponses response = await _authenticator.Authenticate(user);
+            return Ok(response);
+        }
 
         private IActionResult BadRequestModelState()
         {
