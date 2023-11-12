@@ -121,104 +121,6 @@ namespace BetterMomshWebAPI.Models
             }
         }
 
-        //
-        //
-        //
-        //Baby Book Controller (Journals, Creation of BabyBook)
-        //in every baby book creates 3 trimester data
-        //in every trimester creates 3 month data
-        //
-        public string CreateBabyBook(BabyBookModel babyBook)
-        {
-            var user = _DataContext.UserCred.FirstOrDefault(u => u.user_id.Equals(babyBook.user_id));
-
-            if (user == null)
-            {
-                return "User Doesn't Exist";
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(babyBook.Title))
-                {
-                    BabyBook bBook = new BabyBook
-                    {
-                        Title = babyBook.Title,
-                        Created = DateOnly.FromDateTime(DateTime.Now),
-                        user_id = babyBook.user_id
-                    };
-                    // Add the BabyBook entity to the database
-                    _DataContext.BabyBook.Add(bBook);
-                    _DataContext.SaveChanges();
-
-                    // Create and associate trimesters with unique IDs
-                    for (int i = 1; i <= 3; i++)
-                    {
-                        Trimester trimester = new Trimester
-                        {
-                            BookId = bBook.BookId, // Set the foreign key to associate with the BabyBook
-                            Trimesters = i + " Trimester",
-                        };
-                        // Add the trimester to the database
-                        _DataContext.trimesters.Add(trimester);
-                    }
-                    _DataContext.SaveChanges();
-
-                    // Create months associated with each trimester
-                    foreach (var trimester in _DataContext.trimesters.Where(t => t.BookId == bBook.BookId))
-                    {
-                        for (int j = 1; j <= 3; j++)
-                        {
-                            Months month = new Months
-                            {
-                                Month = "Month " + j,
-                                TrimesterId = trimester.TrimesterId
-                            };
-                            _DataContext.months.Add(month);
-                        }
-                    }
-                    _DataContext.SaveChanges();
-                    return "Baby Book Added";
-                }
-                else
-                {
-                    return "Title is Required";
-                }
-            }
-        }
-
-        //
-        //
-        //
-        //Adding Journal Components
-        //
-        //
-        //
-        public string AddJournal(JournalModel journal)
-        {
-            var monthid = _DataContext.months.FirstOrDefault(u => u.MonthId.Equals(journal.MonthId));
-            var bookid = _DataContext.BabyBook.FirstOrDefault(u => u.BookId.Equals(journal.BookId));
-            DateTime localDateTime = DateTime.Now; // Your local DateTime
-            DateTime utcDateTime = localDateTime.ToUniversalTime(); // Convert to UTC
-            if (bookid == null || monthid == null)
-            {
-                return "Book Data doesn't exist";
-            }
-            else
-            {
-                Journal journ = new Journal
-                {
-                    JournalName = journal.JournalName,
-                    journalEntry = journal.JournalEntry,
-                    Entry_Date = utcDateTime,
-                    PhotoData = journal.PhotoData,
-                    BookId = journal.BookId,
-                    //MonthId = journal.MonthId
-                };
-                _DataContext.journal.Add(journ);
-                _DataContext.SaveChanges();
-                return "Journal Added";
-            }
-        }
         public BabyBookModel GetBbookById(int id)
         {
             BabyBookModel response = new BabyBookModel();
@@ -289,6 +191,130 @@ namespace BetterMomshWebAPI.Models
                     user_id = user.user_id
 
                 };
+            }
+        }
+        //
+        //
+        //
+        //Baby Book Controller (Journals, Creation of BabyBook)
+        //in every baby book creates 3 trimester data
+        //in every trimester creates 3 month data
+        //
+        public string CreateBabyBook(BabyBookModel babyBook)
+        {
+            var user = _DataContext.UserCred.FirstOrDefault(u => u.user_id.Equals(babyBook.user_id));
+
+            if (user == null)
+            {
+                return "User Doesn't Exist";
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(babyBook.Title))
+                {
+                    BabyBook bBook = new BabyBook
+                    {
+                        Title = babyBook.Title,
+                        Created = DateOnly.FromDateTime(DateTime.Now),
+                        user_id = babyBook.user_id
+                    };
+                    // Add the BabyBook entity to the database
+                    _DataContext.BabyBook.Add(bBook);
+                    _DataContext.SaveChanges();
+
+                    // Create and associate trimesters with unique IDs
+                    for (int i = 1; i <= 3; i++)
+                    {
+                        Trimester trimester = new Trimester
+                        {
+                            BookId = bBook.BookId, // Set the foreign key to associate with the BabyBook
+                            Trimesters = i + " Trimester",
+                        };
+                        // Add the trimester to the database
+                        _DataContext.trimesters.Add(trimester);
+                        _DataContext.SaveChanges();
+                        for (int j = 1; j <= 3; j++) // Loop through 6 months
+                        {
+                            int newMon = (i - 1) * 3 + j;
+                            Months month = new Months
+                            {
+                                Month = "Month " + newMon,
+                                TrimesterId = trimester.TrimesterId
+                            };
+                            _DataContext.months.Add(month);
+                            _DataContext.SaveChanges();
+
+                            if (newMon == 3 || newMon == 5 || newMon == 6 || newMon == 9)
+                            {
+                                for (int k = 1; k <= 5; k++)
+                                {
+                                    Weeks week = new Weeks
+                                    {
+                                        week_number = "Week" + k,
+                                        MonthId = month.MonthId
+                                    };
+                                    _DataContext.week.Add(week);
+                                    _DataContext.SaveChanges();
+                                }
+                            }
+                            else
+                            {
+                                for (int k = 1; k <= 4; k++)
+                                {
+                                    Weeks week = new Weeks
+                                    {
+                                        week_number = "Week" + k,
+                                        MonthId = month.MonthId
+                                    };
+                                    _DataContext.week.Add(week);
+                                    _DataContext.SaveChanges();
+                                }
+                            }
+
+                        }
+                        _DataContext.SaveChanges();
+                    }
+
+                    return "Baby Book Added";
+                }
+                else
+                {
+                    return "Title is Required";
+                }
+            }
+        }
+
+        //
+        //
+        //
+        //Adding Journal Components
+        //
+        //
+        //
+        public string AddJournal(JournalModel journal)
+        {
+            var weekid = _DataContext.week.FirstOrDefault(u => u.weekId.Equals(journal.weekId));
+            var bookid = _DataContext.BabyBook.FirstOrDefault(u => u.BookId.Equals(journal.BookId));
+            DateTime localDateTime = DateTime.Now; // Your local DateTime
+            DateTime utcDateTime = localDateTime.ToUniversalTime(); // Convert to UTC
+            if (bookid == null || weekid == null)
+            {
+                return "Book Data doesn't exist";
+            }
+            else
+            {
+                Journal journ = new Journal
+                {
+                    JournalName = journal.JournalName,
+                    journalEntry = journal.JournalEntry,
+                    Entry_Date = utcDateTime,
+                    PhotoData = journal.PhotoData,
+                    BookId = journal.BookId,
+                    weekId = journal.weekId
+                };
+                _DataContext.journal.Add(journ);
+                _DataContext.SaveChanges();
+                return "Journal Added";
             }
         }
 

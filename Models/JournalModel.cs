@@ -6,6 +6,6 @@
         public string JournalEntry { get; set; }
         public byte[] PhotoData { get; set; }
         public long BookId { get; set; }
-        public long MonthId { get; set; }
+        public long weekId { get; set; }
     }
 }
