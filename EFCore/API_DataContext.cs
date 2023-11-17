@@ -69,5 +69,6 @@ namespace BetterMomshWebAPI.EFCore
             // This method will be used to configure the context options.
             optionsBuilder.EnableSensitiveDataLogging(); // Add this line to enable sensitive data logging
         }
+
     }
 }

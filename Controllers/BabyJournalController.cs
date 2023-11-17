@@ -102,7 +102,8 @@ namespace BetterMomshWebAPI.Controllers
                     e = ResponseType.NotFound;
                 }
                 return Ok(ResponseHandler.GetAppResponse(e, data));
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Console.WriteLine("Error: " + e.Message);
                 Console.WriteLine("Inner Exception: " + e.InnerException?.Message);
@@ -130,29 +131,52 @@ namespace BetterMomshWebAPI.Controllers
             }
         }
 
-        [HttpGet("Journal/{BookID}")]
-        public IActionResult GetBbook(long BookID)
+        [HttpGet("Journal/{UserID}")]
+        public async Task<IActionResult> GetAllBabyBook(Guid UserID)
+        {
+            try
+            {
+                ResponseType type = ResponseType.Success;
+                List<BabyBook> data = await _journDb.GetAllBabyBooks(UserID);
+                if (data == null)
+                {
+                    type = ResponseType.NotFound;
+                }
+                return Ok(ResponseHandler.GetAppResponse(type, data));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+                Console.WriteLine("Inner Exception: " + ex.InnerException?.Message);
+                return BadRequest(ResponseHandler.GetExceptionResponse(ex));
+            }
+        }
+        [HttpGet("Journal/{UserID}/{BookID}")]
+        public IActionResult GetAllBabyBookTrim(Guid UserID, long BookID)
         {
             return Ok();
         }
-        [HttpGet("Journal/{BookID}/{monID}")]
-        public IActionResult GetBbookMon(long BookID, int monId)
+        [HttpGet("Journal/{UserID}/{BookID}/{TrimID}")]
+        public IActionResult GetAllBabyBookMonth(Guid UserID, long BookID, long TrimID)
         {
             return Ok();
         }
-        [HttpGet("Journal/{BookID}/{monID}/{weekID}")]
-        public IActionResult GetBbookWeek(long BookID, int monId, int weekID)
+        [HttpGet("Journal/{UserID}/{BookID}/{TrimID}/{monID}")]
+        public IActionResult GetAllBbookWeek(Guid UserID, long BookID, long TrimID, int monId)
+        {
+            return Ok();
+        }
+        [HttpGet("Journal/{UserID}/{BookID}/{TrimID}/{monID}/{weekID}")]
+        public IActionResult GetAllBbookJournal(Guid UserID, long BookID, long TrimID, int monId, int weekID)
         {
             return Ok();
         }
 
-        [HttpGet("Journal/{BookID}/{monId}/{weekID}/{journalID}")]
-        public IActionResult GetJournal(long BookID, int monId, int weekID, long journalID)
+        [HttpGet("Journal/{UserID}/{BookID}/{TrimID}/{monId}/{weekID}/{journalID}")]
+        public IActionResult GetJournal(Guid UserID, long BookID, long TrimID, int monId, int weekID, long journalID)
         {
-            // Your logic to retrieve and return the journal based on the provided parameters
-            // ...
 
-            return Ok(/* Your result */);
+            return Ok();
         }
     }
 }
