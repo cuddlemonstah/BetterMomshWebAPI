@@ -47,11 +47,11 @@ namespace BetterMomshWebAPI.Models.Database_Repository
             }
         }
 
-        public async Task<bool> DeleteJournal(Journal model)
+        public async Task<bool> DeleteJournal(long id)
         {
             try
             {
-                var journal = _DataContext.journal.FirstOrDefault(u => u.journalId == model.journalId);
+                var journal = _DataContext.journal.FirstOrDefault(u => u.journalId == id);
 
                 if (journal != null)
                 {

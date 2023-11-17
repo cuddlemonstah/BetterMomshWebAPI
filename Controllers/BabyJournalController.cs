@@ -16,7 +16,7 @@ namespace BetterMomshWebAPI.Controllers
     {
 
         private readonly DbHelper _db;
-        private readonly Journal_DbHelper _journDb; 
+        private readonly Journal_DbHelper _journDb;
         public BabyJournalController(API_DataContext _DataContext)
         {
             _db = new DbHelper(_DataContext);
@@ -82,7 +82,7 @@ namespace BetterMomshWebAPI.Controllers
                     type = ResponseType.NotFound;
                 }
                 return Ok(ResponseHandler.GetAppResponse(type, data));
-            }   
+            }
             catch (Exception ex)
             {
                 Console.WriteLine("Error: " + ex.Message);
@@ -91,18 +91,18 @@ namespace BetterMomshWebAPI.Controllers
             }
         }
         [HttpPut("UpJourn/{id}")]
-        public IActionResult UpdateJournal([FromBody] JournalModel value, long id) 
+        public IActionResult UpdateJournal([FromBody] JournalModel value, long id)
         {
             try
             {
                 ResponseType e = ResponseType.Success;
-                var data = _journDb.UpdateJournal(value,id);
-                if(data == null)
+                var data = _journDb.UpdateJournal(value, id);
+                if (data == null)
                 {
                     e = ResponseType.NotFound;
                 }
                 return Ok(ResponseHandler.GetAppResponse(e, data));
-            }catch(Exception e)
+            } catch (Exception e)
             {
                 Console.WriteLine("Error: " + e.Message);
                 Console.WriteLine("Inner Exception: " + e.InnerException?.Message);
@@ -115,7 +115,7 @@ namespace BetterMomshWebAPI.Controllers
             try
             {
                 ResponseType e = ResponseType.Success;
-                var data = await _journDb.DeleteJournal( id);
+                var data = await _journDb.DeleteJournal(id);
                 if (!data)
                 {
                     e = ResponseType.NotFound;
@@ -128,6 +128,31 @@ namespace BetterMomshWebAPI.Controllers
                 Console.WriteLine("Inner Exception: " + e.InnerException?.Message);
                 return BadRequest(ResponseHandler.GetExceptionResponse(e));
             }
+        }
+
+        [HttpGet("Journal/{BookID}")]
+        public IActionResult GetBbook(long BookID)
+        {
+            return Ok();
+        }
+        [HttpGet("Journal/{BookID}/{monID}")]
+        public IActionResult GetBbookMon(long BookID, int monId)
+        {
+            return Ok();
+        }
+        [HttpGet("Journal/{BookID}/{monID}/{weekID}")]
+        public IActionResult GetBbookWeek(long BookID, int monId, int weekID)
+        {
+            return Ok();
+        }
+
+        [HttpGet("Journal/{BookID}/{monId}/{weekID}/{journalID}")]
+        public IActionResult GetJournal(long BookID, int monId, int weekID, long journalID)
+        {
+            // Your logic to retrieve and return the journal based on the provided parameters
+            // ...
+
+            return Ok(/* Your result */);
         }
     }
 }
