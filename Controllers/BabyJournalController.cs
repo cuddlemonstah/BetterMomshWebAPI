@@ -1,5 +1,6 @@
 ﻿using BetterMomshWebAPI.EFCore;
 using BetterMomshWebAPI.Models;
+using BetterMomshWebAPI.Models.Database_Repository;
 using BetterMomshWebAPI.Models.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,9 +16,11 @@ namespace BetterMomshWebAPI.Controllers
     {
 
         private readonly DbHelper _db;
+        private readonly Journal_DbHelper _journDb; 
         public BabyJournalController(API_DataContext _DataContext)
         {
             _db = new DbHelper(_DataContext);
+            _journDb = new Journal_DbHelper(_DataContext);
         }
         [HttpPost("BabyBook")]
         public IActionResult PostBBook([FromBody] BabyBookModel value)
@@ -79,12 +82,51 @@ namespace BetterMomshWebAPI.Controllers
                     type = ResponseType.NotFound;
                 }
                 return Ok(ResponseHandler.GetAppResponse(type, data));
-            }
+            }   
             catch (Exception ex)
             {
                 Console.WriteLine("Error: " + ex.Message);
                 Console.WriteLine("Inner Exception: " + ex.InnerException?.Message);
                 return BadRequest(ResponseHandler.GetExceptionResponse(ex));
+            }
+        }
+        [HttpPut("UpJourn/{id}")]
+        public IActionResult UpdateJournal([FromBody] JournalModel value, long id) 
+        {
+            try
+            {
+                ResponseType e = ResponseType.Success;
+                var data = _journDb.UpdateJournal(value,id);
+                if(data == null)
+                {
+                    e = ResponseType.NotFound;
+                }
+                return Ok(ResponseHandler.GetAppResponse(e, data));
+            }catch(Exception e)
+            {
+                Console.WriteLine("Error: " + e.Message);
+                Console.WriteLine("Inner Exception: " + e.InnerException?.Message);
+                return BadRequest(ResponseHandler.GetExceptionResponse(e));
+            }
+        }
+        [HttpDelete("DeleteJourn/{id}")]
+        public async Task<IActionResult> DeleteJournal(long id)
+        {
+            try
+            {
+                ResponseType e = ResponseType.Success;
+                var data = await _journDb.DeleteJournal( id);
+                if (!data)
+                {
+                    e = ResponseType.NotFound;
+                }
+                return Ok(ResponseHandler.GetAppResponse(e, data));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: " + e.Message);
+                Console.WriteLine("Inner Exception: " + e.InnerException?.Message);
+                return BadRequest(ResponseHandler.GetExceptionResponse(e));
             }
         }
     }
