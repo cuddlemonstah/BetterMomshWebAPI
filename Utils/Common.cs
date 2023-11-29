@@ -33,6 +33,31 @@ namespace BetterMomshWebAPI.Utils
             return algorithm.ComputeHash(plainTextWithSaltBytes);
 
         }
+        public DateTime? ParseBirthdate(string birthdateClaim)
+        {
+            if (!string.IsNullOrEmpty(birthdateClaim) && DateTime.TryParse(birthdateClaim, out DateTime birthdate))
+            {
+                return birthdate;
+            }
+            return null; // Return null if the birthdate claim is missing or invalid
+        }
+        public decimal? ParseContactNumber(string contactClaim)
+        {
+            if (!string.IsNullOrEmpty(contactClaim) && decimal.TryParse(contactClaim, out decimal contactNum))
+            {
+                return contactNum;
+            }
+            return null; // Return null if the birthdate claim is missing or invalid
+        }
 
+        public Guid? ParseId(string user_id)
+        {
+            if (!string.IsNullOrEmpty(user_id) && Guid.TryParse(user_id, out Guid userId))
+            {
+                // If the string is successfully parsed to a Guid, assign it to the user_id
+                return userId;
+            }
+            return null;
+        }
     }
 }

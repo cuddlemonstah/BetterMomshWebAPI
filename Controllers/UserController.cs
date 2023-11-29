@@ -1,5 +1,5 @@
 ﻿using BetterMomshWebAPI.Models.JWT_Models;
-using Microsoft.AspNetCore.Authorization;
+using BetterMomshWebAPI.Utils;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -9,14 +9,7 @@ namespace BetterMomshWebAPI.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        [HttpGet("Patient")]
-        [Authorize(Roles = "Patient")]
-        public IActionResult GetUser()
-        {
-            var currentUser = GetCurrentUser();
-
-            return Ok(currentUser);
-        }
+        private readonly Common _common;
 
         private UserModel GetCurrentUser()
         {
@@ -25,9 +18,9 @@ namespace BetterMomshWebAPI.Controllers
             {
                 var userClaims = identity.Claims;
 
-                DateTime? birthdate = ParseBirthdate(userClaims.FirstOrDefault(o => o.Type == ClaimTypes.DateOfBirth)?.Value);
-                decimal? contactNum = ParseContactNumber(userClaims.FirstOrDefault(o => o.Type == ClaimTypes.MobilePhone)?.Value);
-                Guid? user_id = ParseId(userClaims.FirstOrDefault(o => o.Type == "Id")?.Value);
+                DateTime? birthdate = _common.ParseBirthdate(userClaims.FirstOrDefault(o => o.Type == ClaimTypes.DateOfBirth)?.Value);
+                decimal? contactNum = _common.ParseContactNumber(userClaims.FirstOrDefault(o => o.Type == ClaimTypes.MobilePhone)?.Value);
+                Guid? user_id = _common.ParseId(userClaims.FirstOrDefault(o => o.Type == "Id")?.Value);
                 return new UserModel
                 {
                     user_id = user_id,
@@ -48,31 +41,6 @@ namespace BetterMomshWebAPI.Controllers
             return null;
         }
 
-        private DateTime? ParseBirthdate(string birthdateClaim)
-        {
-            if (!string.IsNullOrEmpty(birthdateClaim) && DateTime.TryParse(birthdateClaim, out DateTime birthdate))
-            {
-                return birthdate;
-            }
-            return null; // Return null if the birthdate claim is missing or invalid
-        }
-        private decimal? ParseContactNumber(string contactClaim)
-        {
-            if (!string.IsNullOrEmpty(contactClaim) && decimal.TryParse(contactClaim, out decimal contactNum))
-            {
-                return contactNum;
-            }
-            return null; // Return null if the birthdate claim is missing or invalid
-        }
 
-        private Guid? ParseId(string user_id)
-        {
-            if (!string.IsNullOrEmpty(user_id) && Guid.TryParse(user_id, out Guid userId))
-            {
-                // If the string is successfully parsed to a Guid, assign it to the user_id
-                return userId;
-            }
-            return null;
-        }
     }
 }

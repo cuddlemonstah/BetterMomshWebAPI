@@ -11,11 +11,13 @@ namespace BetterMomshWebAPI.EFCore
         public DateOnly Created { get; set; }
 
         [ForeignKey("userCred")]
-        public Guid user_id { get; set; }
+        public Guid user_Id { get; set; }
 
-        public userCred UserCred { get; set; }
+        public UserCredential UserCred { get; set; }
 
-        public ICollection<Trimester> trim { get; set; }
-        public ICollection<Journal> journal { get; set; }
+        public ICollection<Trimester> Trimesters { get; set; }
+        public ICollection<Month> Month { get; set; }
+        public ICollection<Week> Week { get; set; }
+        public ICollection<Journal> Journals { get; set; }
     }
 }

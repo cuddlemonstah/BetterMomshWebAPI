@@ -88,3 +88,4 @@ C:\Users\admin\source\repos\BetterMomshWebAPI\obj\Debug\net7.0\refint\BetterMoms
 C:\Users\admin\source\repos\BetterMomshWebAPI\obj\Debug\net7.0\BetterMomshWebAPI.pdb
 C:\Users\admin\source\repos\BetterMomshWebAPI\obj\Debug\net7.0\BetterMomshWebAPI.genruntimeconfig.cache
 C:\Users\admin\source\repos\BetterMomshWebAPI\obj\Debug\net7.0\ref\BetterMomshWebAPI.dll
+C:\Users\me\source\repos\BetterMomshWebAPI\bin\Debug\net7.0\Microsoft.AspNet.Identity.Core.dll

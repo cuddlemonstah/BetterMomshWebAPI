@@ -28,7 +28,7 @@ namespace BetterMomshWebAPI.Models
                 }
                 else
                 {
-                    userCred UserAuth = new userCred
+                    UserCredential UserAuth = new UserCredential
                     {
                         Username = registration.username,
                         Role = registration.Role
@@ -41,7 +41,7 @@ namespace BetterMomshWebAPI.Models
 
                     var utcBirthdate = DateTime.SpecifyKind(registration.Birthdate.GetValueOrDefault(), DateTimeKind.Utc);
 
-                    var UserInfo = new userInfo
+                    var UserInfo = new UserInformation
                     {
                         FirstName = registration.FirstName,
                         LastName = registration.LastName,
@@ -54,7 +54,7 @@ namespace BetterMomshWebAPI.Models
                         ContactNumber = registration.ContactNumber
                     };
 
-                    var refreshToken = new RefreshTokens
+                    var refreshToken = new EFCore.RefreshToken
                     {
                         user_id = UserAuth.user_id
                     };
@@ -129,17 +129,17 @@ namespace BetterMomshWebAPI.Models
             {
                 Title = dataList.Title,
                 Created = dataList.Created,
-                user_id = dataList.user_id
+                user_id = dataList.user_Id
             };
         }
 
-        public Task<RefreshTokens> GetByToken(string token)
+        public Task<EFCore.RefreshToken> GetByToken(string token)
         {
-            var refreshToken = _DataContext.RefreshTokens.FirstOrDefault(r => r.RefreshToken == token);
+            var refreshToken = _DataContext.RefreshTokens.FirstOrDefault(r => r.RefreshTokens == token);
             return Task.FromResult(refreshToken);
         }
 
-        public async Task<bool> UpdateRefreshToken(Guid? userId, RefreshToken newRefreshToken)
+        public async Task<bool> UpdateRefreshToken(Guid? userId, JWT_Models.RefreshToken newRefreshToken)
         {
             try
             {
@@ -147,7 +147,7 @@ namespace BetterMomshWebAPI.Models
 
                 if (user != null)
                 {
-                    user.RefreshToken = newRefreshToken.Token;
+                    user.RefreshTokens = newRefreshToken.Token;
                     user.TokenCreated = newRefreshToken.Created.ToUniversalTime();
                     user.TokenExpired = newRefreshToken.Expires.ToUniversalTime();
 
@@ -169,12 +169,12 @@ namespace BetterMomshWebAPI.Models
         public async Task AddToBlacklistAsync(string token)
         {
             var entity = new TokenBlacklist { Token = token };
-            _DataContext.blacklist.Add(entity);
+            _DataContext.BlackList.Add(entity);
             await _DataContext.SaveChangesAsync();
         }
         public async Task<bool> IsTokenBlacklistedAsync(string token)
         {
-            return await _DataContext.blacklist.AnyAsync(t => t.Token == token);
+            return await _DataContext.BlackList.AnyAsync(t => t.Token == token);
         }
 
         public async Task<UserModel> getUserID(Guid? userId)
@@ -200,9 +200,9 @@ namespace BetterMomshWebAPI.Models
         //in every baby book creates 3 trimester data
         //in every trimester creates 3 month data
         //
-        public string CreateBabyBook(BabyBookModel babyBook)
+        public string CreateBabyBook(Guid userId, BabyBookModel babyBook)
         {
-            var user = _DataContext.UserCred.FirstOrDefault(u => u.user_id.Equals(babyBook.user_id));
+            var user = _DataContext.UserCred.FirstOrDefault(u => u.user_id.Equals(userId));
 
             if (user == null)
             {
@@ -216,7 +216,7 @@ namespace BetterMomshWebAPI.Models
                     {
                         Title = babyBook.Title,
                         Created = DateOnly.FromDateTime(DateTime.Now),
-                        user_id = babyBook.user_id
+                        user_Id = babyBook.user_id
                     };
                     // Add the BabyBook entity to the database
                     _DataContext.BabyBook.Add(bBook);
@@ -227,33 +227,38 @@ namespace BetterMomshWebAPI.Models
                     {
                         Trimester trimester = new Trimester
                         {
+                            user_id = babyBook.user_id,
                             BookId = bBook.BookId, // Set the foreign key to associate with the BabyBook
                             Trimesters = i + " Trimester",
                         };
                         // Add the trimester to the database
-                        _DataContext.trimesters.Add(trimester);
+                        _DataContext.Trimester.Add(trimester);
                         _DataContext.SaveChanges();
                         for (int j = 1; j <= 3; j++) // Loop through 6 months
                         {
                             int newMon = (i - 1) * 3 + j;
-                            Months month = new Months
+                            Month month = new Month
                             {
-                                Month = "Month " + newMon,
+                                user_id = babyBook.user_id,
+                                BookId = bBook.BookId,
+                                Months = "Month " + newMon,
                                 TrimesterId = trimester.TrimesterId
                             };
-                            _DataContext.months.Add(month);
+                            _DataContext.Month.Add(month);
                             _DataContext.SaveChanges();
 
                             if (newMon == 3 || newMon == 5 || newMon == 6 || newMon == 9)
                             {
                                 for (int k = 1; k <= 5; k++)
                                 {
-                                    Weeks week = new Weeks
+                                    Week week = new Week
                                     {
+                                        user_id = babyBook.user_id,
+                                        BookId = bBook.BookId,
                                         week_number = "Week" + k,
                                         MonthId = month.MonthId
                                     };
-                                    _DataContext.week.Add(week);
+                                    _DataContext.Week.Add(week);
                                     _DataContext.SaveChanges();
                                 }
                             }
@@ -261,12 +266,14 @@ namespace BetterMomshWebAPI.Models
                             {
                                 for (int k = 1; k <= 4; k++)
                                 {
-                                    Weeks week = new Weeks
+                                    Week week = new Week
                                     {
+                                        user_id = babyBook.user_id,
+                                        BookId = bBook.BookId,
                                         week_number = "Week" + k,
                                         MonthId = month.MonthId
                                     };
-                                    _DataContext.week.Add(week);
+                                    _DataContext.Week.Add(week);
                                     _DataContext.SaveChanges();
                                 }
                             }
@@ -293,7 +300,7 @@ namespace BetterMomshWebAPI.Models
         //
         public string AddJournal(JournalModel journal)
         {
-            var weekid = _DataContext.week.FirstOrDefault(u => u.weekId.Equals(journal.weekId));
+            var weekid = _DataContext.Week.FirstOrDefault(u => u.weekId.Equals(journal.weekId));
             var bookid = _DataContext.BabyBook.FirstOrDefault(u => u.BookId.Equals(journal.BookId));
             DateTime localDateTime = DateTime.Now; // Your local DateTime
             DateTime utcDateTime = localDateTime.ToUniversalTime(); // Convert to UTC
@@ -312,7 +319,7 @@ namespace BetterMomshWebAPI.Models
                     BookId = journal.BookId,
                     weekId = journal.weekId
                 };
-                _DataContext.journal.Add(journ);
+                _DataContext.Journal.Add(journ);
                 _DataContext.SaveChanges();
                 return "Journal Added";
             }

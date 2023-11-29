@@ -18,10 +18,14 @@ namespace BetterMomshWebAPI.EFCore
         [ForeignKey("BookId")]
         public long BookId { get; set; }
 
+        [ForeignKey("user_id")]
+        public Guid user_id { get; set; }
+
         [ForeignKey("weekId")]
         public long weekId { get; set; }
 
         public BabyBook babyBook { get; set; }
-        public Weeks week { get; set; }
+        public UserCredential user { get; set; }
+        public Week week { get; set; }
     }
 }

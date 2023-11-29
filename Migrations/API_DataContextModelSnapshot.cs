@@ -37,12 +37,12 @@ namespace BetterMomshWebAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("user_id")
+                    b.Property<Guid>("user_Id")
                         .HasColumnType("uuid");
 
                     b.HasKey("BookId");
 
-                    b.HasIndex("user_id");
+                    b.HasIndex("user_Id");
 
                     b.ToTable("BabyBook");
                 });
@@ -73,6 +73,9 @@ namespace BetterMomshWebAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid>("user_id")
+                        .HasColumnType("uuid");
+
                     b.Property<long>("weekId")
                         .HasColumnType("bigint");
 
@@ -80,12 +83,14 @@ namespace BetterMomshWebAPI.Migrations
 
                     b.HasIndex("BookId");
 
+                    b.HasIndex("user_id");
+
                     b.HasIndex("weekId");
 
                     b.ToTable("Journals");
                 });
 
-            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Months", b =>
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Month", b =>
                 {
                     b.Property<long>("MonthId")
                         .ValueGeneratedOnAdd()
@@ -93,27 +98,37 @@ namespace BetterMomshWebAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseSerialColumn(b.Property<long>("MonthId"));
 
-                    b.Property<string>("Month")
+                    b.Property<long>("BookId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Months")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<long>("TrimesterId")
                         .HasColumnType("bigint");
 
+                    b.Property<Guid>("user_id")
+                        .HasColumnType("uuid");
+
                     b.HasKey("MonthId");
 
+                    b.HasIndex("BookId");
+
                     b.HasIndex("TrimesterId");
+
+                    b.HasIndex("user_id");
 
                     b.ToTable("Months");
                 });
 
-            modelBuilder.Entity("BetterMomshWebAPI.EFCore.RefreshTokens", b =>
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("RefreshToken")
+                    b.Property<string>("RefreshTokens")
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("TokenCreated")
@@ -165,36 +180,19 @@ namespace BetterMomshWebAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid>("user_id")
+                        .HasColumnType("uuid");
+
                     b.HasKey("TrimesterId");
 
                     b.HasIndex("BookId");
 
+                    b.HasIndex("user_id");
+
                     b.ToTable("Trimester");
                 });
 
-            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Weeks", b =>
-                {
-                    b.Property<long>("weekId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseSerialColumn(b.Property<long>("weekId"));
-
-                    b.Property<long>("MonthId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("week_number")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("weekId");
-
-                    b.HasIndex("MonthId");
-
-                    b.ToTable("Weeks");
-                });
-
-            modelBuilder.Entity("BetterMomshWebAPI.EFCore.userCred", b =>
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.UserCredential", b =>
                 {
                     b.Property<Guid>("user_id")
                         .ValueGeneratedOnAdd()
@@ -221,7 +219,7 @@ namespace BetterMomshWebAPI.Migrations
                     b.ToTable("user_credential");
                 });
 
-            modelBuilder.Entity("BetterMomshWebAPI.EFCore.userInfo", b =>
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.UserInformation", b =>
                 {
                     b.Property<Guid>("user_id")
                         .HasColumnType("uuid");
@@ -271,11 +269,43 @@ namespace BetterMomshWebAPI.Migrations
                     b.ToTable("user_profile");
                 });
 
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Week", b =>
+                {
+                    b.Property<long>("weekId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseSerialColumn(b.Property<long>("weekId"));
+
+                    b.Property<long>("BookId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("MonthId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("user_id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("week_number")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("weekId");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("MonthId");
+
+                    b.HasIndex("user_id");
+
+                    b.ToTable("Weeks");
+                });
+
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.BabyBook", b =>
                 {
-                    b.HasOne("BetterMomshWebAPI.EFCore.userCred", "UserCred")
+                    b.HasOne("BetterMomshWebAPI.EFCore.UserCredential", "UserCred")
                         .WithMany("BabyBooks")
-                        .HasForeignKey("user_id")
+                        .HasForeignKey("user_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -285,12 +315,18 @@ namespace BetterMomshWebAPI.Migrations
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.Journal", b =>
                 {
                     b.HasOne("BetterMomshWebAPI.EFCore.BabyBook", "babyBook")
-                        .WithMany("journal")
+                        .WithMany("Journals")
                         .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BetterMomshWebAPI.EFCore.Weeks", "week")
+                    b.HasOne("BetterMomshWebAPI.EFCore.UserCredential", "user")
+                        .WithMany("Journal")
+                        .HasForeignKey("user_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BetterMomshWebAPI.EFCore.Week", "week")
                         .WithMany("journal")
                         .HasForeignKey("weekId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -298,25 +334,43 @@ namespace BetterMomshWebAPI.Migrations
 
                     b.Navigation("babyBook");
 
+                    b.Navigation("user");
+
                     b.Navigation("week");
                 });
 
-            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Months", b =>
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Month", b =>
                 {
+                    b.HasOne("BetterMomshWebAPI.EFCore.BabyBook", "babyBook")
+                        .WithMany("Month")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("BetterMomshWebAPI.EFCore.Trimester", "trim")
                         .WithMany("mon")
                         .HasForeignKey("TrimesterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("BetterMomshWebAPI.EFCore.UserCredential", "user")
+                        .WithMany("Month")
+                        .HasForeignKey("user_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("babyBook");
+
                     b.Navigation("trim");
+
+                    b.Navigation("user");
                 });
 
-            modelBuilder.Entity("BetterMomshWebAPI.EFCore.RefreshTokens", b =>
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.RefreshToken", b =>
                 {
-                    b.HasOne("BetterMomshWebAPI.EFCore.userCred", "userCred")
+                    b.HasOne("BetterMomshWebAPI.EFCore.UserCredential", "userCred")
                         .WithOne("RefreshTokens")
-                        .HasForeignKey("BetterMomshWebAPI.EFCore.RefreshTokens", "user_id")
+                        .HasForeignKey("BetterMomshWebAPI.EFCore.RefreshToken", "user_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -326,44 +380,72 @@ namespace BetterMomshWebAPI.Migrations
             modelBuilder.Entity("BetterMomshWebAPI.EFCore.Trimester", b =>
                 {
                     b.HasOne("BetterMomshWebAPI.EFCore.BabyBook", "babyBook")
-                        .WithMany("trim")
+                        .WithMany("Trimesters")
                         .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("babyBook");
-                });
-
-            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Weeks", b =>
-                {
-                    b.HasOne("BetterMomshWebAPI.EFCore.Months", "mon")
-                        .WithMany("weeks")
-                        .HasForeignKey("MonthId")
+                    b.HasOne("BetterMomshWebAPI.EFCore.UserCredential", "user")
+                        .WithMany("Trimester")
+                        .HasForeignKey("user_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("mon");
+                    b.Navigation("babyBook");
+
+                    b.Navigation("user");
                 });
 
-            modelBuilder.Entity("BetterMomshWebAPI.EFCore.userInfo", b =>
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.UserInformation", b =>
                 {
-                    b.HasOne("BetterMomshWebAPI.EFCore.userCred", "userCred")
+                    b.HasOne("BetterMomshWebAPI.EFCore.UserCredential", "userCred")
                         .WithOne("UserInfo")
-                        .HasForeignKey("BetterMomshWebAPI.EFCore.userInfo", "user_id")
+                        .HasForeignKey("BetterMomshWebAPI.EFCore.UserInformation", "user_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("userCred");
                 });
 
-            modelBuilder.Entity("BetterMomshWebAPI.EFCore.BabyBook", b =>
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Week", b =>
                 {
-                    b.Navigation("journal");
+                    b.HasOne("BetterMomshWebAPI.EFCore.BabyBook", "babyBook")
+                        .WithMany("Week")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("trim");
+                    b.HasOne("BetterMomshWebAPI.EFCore.Month", "mon")
+                        .WithMany("weeks")
+                        .HasForeignKey("MonthId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BetterMomshWebAPI.EFCore.UserCredential", "user")
+                        .WithMany("Week")
+                        .HasForeignKey("user_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("babyBook");
+
+                    b.Navigation("mon");
+
+                    b.Navigation("user");
                 });
 
-            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Months", b =>
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.BabyBook", b =>
+                {
+                    b.Navigation("Journals");
+
+                    b.Navigation("Month");
+
+                    b.Navigation("Trimesters");
+
+                    b.Navigation("Week");
+                });
+
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Month", b =>
                 {
                     b.Navigation("weeks");
                 });
@@ -373,20 +455,28 @@ namespace BetterMomshWebAPI.Migrations
                     b.Navigation("mon");
                 });
 
-            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Weeks", b =>
-                {
-                    b.Navigation("journal");
-                });
-
-            modelBuilder.Entity("BetterMomshWebAPI.EFCore.userCred", b =>
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.UserCredential", b =>
                 {
                     b.Navigation("BabyBooks");
+
+                    b.Navigation("Journal");
+
+                    b.Navigation("Month");
 
                     b.Navigation("RefreshTokens")
                         .IsRequired();
 
+                    b.Navigation("Trimester");
+
                     b.Navigation("UserInfo")
                         .IsRequired();
+
+                    b.Navigation("Week");
+                });
+
+            modelBuilder.Entity("BetterMomshWebAPI.EFCore.Week", b =>
+                {
+                    b.Navigation("journal");
                 });
 #pragma warning restore 612, 618
         }

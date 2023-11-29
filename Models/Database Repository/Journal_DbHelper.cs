@@ -19,7 +19,7 @@ namespace BetterMomshWebAPI.Models.Database_Repository
         {
             try
             {
-                var journal = _DataContext.journal.FirstOrDefault(u => u.journalId == journalID);
+                var journal = _DataContext.Journal.FirstOrDefault(u => u.journalId == journalID);
 
                 if (journal != null)
                 {
@@ -51,11 +51,11 @@ namespace BetterMomshWebAPI.Models.Database_Repository
         {
             try
             {
-                var journal = _DataContext.journal.FirstOrDefault(u => u.journalId == id);
+                var journal = _DataContext.Journal.FirstOrDefault(u => u.journalId == id);
 
                 if (journal != null)
                 {
-                    _DataContext.journal.Remove(journal);
+                    _DataContext.Journal.Remove(journal);
                     await _DataContext.SaveChangesAsync();
 
                     return true; // Journal deleted successfully
@@ -75,7 +75,7 @@ namespace BetterMomshWebAPI.Models.Database_Repository
             try
             {
                 var BabyBooks = await _DataContext.BabyBook
-                    .Where(j => j.user_id == UserID)
+                    .Where(j => j.user_Id == UserID)
                     .Select(j => new BabyBook
                     {
                         BookId = j.BookId,
@@ -94,13 +94,13 @@ namespace BetterMomshWebAPI.Models.Database_Repository
                 return null; // Failed to get journals
             }
         }
-        public async Task<List<Trimester>> GetAllTrimesters(long BabybookID)
+        public async Task<List<Trimester>> GetAllTrimesters(Guid userId, long babybookID)
         {
 
             try
             {
-                var BabyBookTrimesters = await _DataContext.trimesters
-                    .Where(j => j.BookId == BabybookID)
+                var BabyBookTrimesters = await _DataContext.Trimester
+                    .Where(j => j.BookId == babybookID && j.user_id == userId)
                     .Select(j => new Trimester
                     {
                         TrimesterId = j.TrimesterId,
@@ -118,17 +118,17 @@ namespace BetterMomshWebAPI.Models.Database_Repository
                 return null; // Failed to get journals
             }
         }
-        public async Task<List<Months>> GetAllMonths(long TrimesterID, long MonthID)
+        public async Task<List<Month>> GetAllMonths(Guid userId, long TrimesterID, long bookId)
         {
 
             try
             {
-                var TrimesterMonths = await _DataContext.months
-                    .Where(j => j.MonthId == MonthID && j.TrimesterId == TrimesterID)
-                    .Select(j => new Months
+                var TrimesterMonths = await _DataContext.Month
+                    .Where(j => j.TrimesterId == TrimesterID && j.user_id == userId && j.BookId == bookId)
+                    .Select(j => new Month
                     {
                         MonthId = j.MonthId,
-                        Month = j.Month,
+                        Months = j.Months,
                         // Map other properties as needed
                     })
                     .ToListAsync();
@@ -142,14 +142,14 @@ namespace BetterMomshWebAPI.Models.Database_Repository
                 return null; // Failed to get journals
             }
         }
-        public async Task<List<Weeks>> GetAllWeeks(long WeekID)
+        public async Task<List<Week>> GetAllWeeks(Guid userID, long bookID, long monthId)
         {
 
             try
             {
-                var BabyBookTrimesters = await _DataContext.week
-                    .Where(j => j.weekId == WeekID)
-                    .Select(j => new Weeks
+                var BabyBookTrimesters = await _DataContext.Week
+                    .Where(j => j.MonthId == monthId && j.BookId == bookID && j.user_id == userID)
+                    .Select(j => new Week
                     {
                         weekId = j.weekId,
                         week_number = j.week_number
@@ -166,12 +166,12 @@ namespace BetterMomshWebAPI.Models.Database_Repository
                 return null; // Failed to get journals
             }
         }
-        public async Task<List<Journal>> GetAllJournalsFromWeek(long WeekID)
+        public async Task<List<Journal>> GetAllJournalsByWeek(Guid userID, long bookID, long weekId)
         {
             try
             {
-                var journals = _DataContext.journal
-                    .Where(j => j.weekId == WeekID)
+                var journals = _DataContext.Journal
+                    .Where(j => j.weekId == weekId && j.BookId == bookID && j.user_id == userID)
                     .Select(j => new Journal
                     {
                         journalId = j.journalId,
@@ -192,37 +192,12 @@ namespace BetterMomshWebAPI.Models.Database_Repository
             }
         }
 
-        public async Task<List<Journal>> GetAllJournals(long BookID)
+        public async Task<JournalModel> GetJournalByID(Guid userId, long bookId, long weekId, long journalID)
         {
             try
             {
-                var journals = _DataContext.journal
-                    .Where(j => j.BookId == BookID)
-                    .Select(j => new Journal
-                    {
-                        journalId = j.journalId,
-                        JournalName = j.JournalName,
-                        journalEntry = j.journalEntry,
-                        PhotoData = j.PhotoData
-                        // Map other properties as needed
-                    })
-                    .ToListAsync();
-
-                return await journals;
-            }
-            catch (Exception ex)
-            {
-                // Handle exceptions, log errors, etc.
-                Console.WriteLine("Error: " + ex);
-                return null; // Failed to get journals
-            }
-        }
-        public async Task<JournalModel> GetJournalByID(long journalID)
-        {
-            try
-            {
-                var journal = await _DataContext.journal
-                    .Where(j => j.journalId == journalID)
+                var journal = await _DataContext.Journal
+                    .Where(j => j.journalId == journalID && j.user_id == userId && j.BookId == bookId && j.weekId == weekId)
                     .Select(j => new JournalModel
                     {
                         JournalName = j.JournalName,

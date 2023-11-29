@@ -10,8 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace BetterMomshWebAPI.Controllers
 {
     [Authorize]
-    [Route("[controller]")]
     [ApiController]
+    [Route("dashboard")]
     public class BabyJournalController : ControllerBase
     {
 
@@ -22,13 +22,13 @@ namespace BetterMomshWebAPI.Controllers
             _db = new DbHelper(_DataContext);
             _journDb = new Journal_DbHelper(_DataContext);
         }
-        [HttpPost("BabyBook")]
-        public IActionResult PostBBook([FromBody] BabyBookModel value)
+        [HttpPost("user={userId}/add/baby-book")]
+        public IActionResult AddBabyBook(Guid userId, [FromBody] BabyBookModel value)
         {
             try
             {
                 ResponseType type = ResponseType.Success;
-                var result = _db.CreateBabyBook(value);
+                var result = _db.CreateBabyBook(userId, value);
                 if (result == "New Baby Journal Added")
                 {
                     return Ok(ResponseHandler.GetAppResponse(type, result));
@@ -41,13 +41,13 @@ namespace BetterMomshWebAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine("Error: " + ex.Message);
-                Console.WriteLine("Inner Exception: " + ex.InnerException?.Message);
+                Console.WriteLine("Inner Exce  ption: " + ex.InnerException?.Message);
                 return BadRequest(ResponseHandler.GetExceptionResponse(ex));
             }
         }
 
-        [HttpPost("Journal")]
-        public IActionResult PostJorn([FromBody] JournalModel value)
+        [HttpPost("user={userId}/add/baby-journal")]
+        public IActionResult AddBabyJournal(Guid userId, [FromBody] JournalModel value)
         {
             try
             {
@@ -70,8 +70,8 @@ namespace BetterMomshWebAPI.Controllers
             }
         }
 
-        [HttpGet("BbookBy/{id}")]
-        public IActionResult Get(int id)
+        [HttpGet("book/user={userId}&book-id={id}")]
+        public IActionResult GetBookById(int id)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace BetterMomshWebAPI.Controllers
                 return BadRequest(ResponseHandler.GetExceptionResponse(ex));
             }
         }
-        [HttpPut("UpJourn/{id}")]
+        [HttpPut("book/update/user={userId}&book-id{id}")]
         public IActionResult UpdateJournal([FromBody] JournalModel value, long id)
         {
             try
@@ -110,7 +110,7 @@ namespace BetterMomshWebAPI.Controllers
                 return BadRequest(ResponseHandler.GetExceptionResponse(e));
             }
         }
-        [HttpDelete("DeleteJourn/{id}")]
+        [HttpDelete("book/delete/user={userId}&book-id{id}")]
         public async Task<IActionResult> DeleteJournal(long id)
         {
             try
@@ -131,13 +131,13 @@ namespace BetterMomshWebAPI.Controllers
             }
         }
 
-        [HttpGet("Journal/{UserID}")]
-        public async Task<IActionResult> GetAllBabyBook(Guid UserID)
+        [HttpGet("book/user={userId}")]
+        public async Task<IActionResult> GetAllBabyBook(Guid userID)
         {
             try
             {
                 ResponseType type = ResponseType.Success;
-                List<BabyBook> data = await _journDb.GetAllBabyBooks(UserID);
+                List<BabyBook> data = await _journDb.GetAllBabyBooks(userID);
                 if (data == null)
                 {
                     type = ResponseType.NotFound;
@@ -151,32 +151,107 @@ namespace BetterMomshWebAPI.Controllers
                 return BadRequest(ResponseHandler.GetExceptionResponse(ex));
             }
         }
-        [HttpGet("Journal/{UserID}/{BookID}")]
-        public IActionResult GetAllBabyBookTrim(Guid UserID, long BookID)
+        [HttpGet("book/journal/user={UserID}&book={BookID}/trimester")]
+        public async Task<IActionResult> GetAllBabyBookTrim(Guid userID, long bookID)
         {
-            return Ok();
+            try
+            {
+                ResponseType type = ResponseType.Success;
+                List<Trimester> data = await _journDb.GetAllTrimesters(userID, bookID);
+                if (data == null)
+                {
+                    type = ResponseType.NotFound;
+                }
+                return Ok(ResponseHandler.GetAppResponse(type, data));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+                Console.WriteLine("Inner Exception: " + ex.InnerException?.Message);
+                return BadRequest(ResponseHandler.GetExceptionResponse(ex));
+            }
         }
-        [HttpGet("Journal/{UserID}/{BookID}/{TrimID}")]
-        public IActionResult GetAllBabyBookMonth(Guid UserID, long BookID, long TrimID)
+        [HttpGet("book/journal/user={UserID}&book={BookID}/{trimId}/month")]
+        public async Task<IActionResult> GetAllBabyBookMonth(Guid userID, long bookID, long trimID)
         {
-            return Ok();
+            try
+            {
+                ResponseType type = ResponseType.Success;
+                List<Month> data = await _journDb.GetAllMonths(userID, bookID, trimID);
+                if (data == null)
+                {
+                    type = ResponseType.NotFound;
+                }
+                return Ok(ResponseHandler.GetAppResponse(type, data));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+                Console.WriteLine("Inner Exception: " + ex.InnerException?.Message);
+                return BadRequest(ResponseHandler.GetExceptionResponse(ex));
+            }
         }
-        [HttpGet("Journal/{UserID}/{BookID}/{TrimID}/{monID}")]
-        public IActionResult GetAllBbookWeek(Guid UserID, long BookID, long TrimID, int monId)
+        [HttpGet("book/journal/user={UserID}&book={BookID}/{monthId}/week")]
+        public async Task<IActionResult> GetAllBbookWeek(Guid userID, long bookID, long monthId)
         {
-            return Ok();
+            try
+            {
+                ResponseType type = ResponseType.Success;
+                List<Week> data = await _journDb.GetAllWeeks(userID, bookID, monthId);
+                if (data == null)
+                {
+                    type = ResponseType.NotFound;
+                }
+                return Ok(ResponseHandler.GetAppResponse(type, data));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+                Console.WriteLine("Inner Exception: " + ex.InnerException?.Message);
+                return BadRequest(ResponseHandler.GetExceptionResponse(ex));
+            }
         }
-        [HttpGet("Journal/{UserID}/{BookID}/{TrimID}/{monID}/{weekID}")]
-        public IActionResult GetAllBbookJournal(Guid UserID, long BookID, long TrimID, int monId, int weekID)
+        [HttpGet("book/journal/user={UserID}&book={BookID}/{weekId}/journal")]
+        public async Task<IActionResult> GetAllBbookJournal(Guid userID, long bookID, int weekId)
         {
-            return Ok();
+            try
+            {
+                ResponseType type = ResponseType.Success;
+                List<Journal> data = await _journDb.GetAllJournalsByWeek(userID, bookID, weekId);
+                if (data == null)
+                {
+                    type = ResponseType.NotFound;
+                }
+                return Ok(ResponseHandler.GetAppResponse(type, data));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+                Console.WriteLine("Inner Exception: " + ex.InnerException?.Message);
+                return BadRequest(ResponseHandler.GetExceptionResponse(ex));
+            }
         }
 
-        [HttpGet("Journal/{UserID}/{BookID}/{TrimID}/{monId}/{weekID}/{journalID}")]
-        public IActionResult GetJournal(Guid UserID, long BookID, long TrimID, int monId, int weekID, long journalID)
+        [HttpGet("book/journal/user={UserID}&book={BookID}/{weekId}/journal/{journalId}")]
+        public async Task<IActionResult> GetJournalById(Guid userId, long bookId, int weekId, long journalId)
         {
 
-            return Ok();
+            try
+            {
+                ResponseType type = ResponseType.Success;
+                JournalModel data = await _journDb.GetJournalByID(userId, bookId, weekId, journalId);
+                if (data == null)
+                {
+                    type = ResponseType.NotFound;
+                }
+                return Ok(ResponseHandler.GetAppResponse(type, data));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+                Console.WriteLine("Inner Exception: " + ex.InnerException?.Message);
+                return BadRequest(ResponseHandler.GetExceptionResponse(ex));
+            }
         }
     }
 }

@@ -11,7 +11,10 @@ namespace BetterMomshWebAPI.EFCore
         public string Trimesters { get; set; }
         [ForeignKey("BookId")]
         public long BookId { get; set; }
+        [ForeignKey("user_id")]
+        public Guid user_id { get; set; }
         public BabyBook babyBook { get; set; }
-        public IEnumerable<Months> mon { get; set; }
+        public UserCredential user { get; set; }
+        public IEnumerable<Month> mon { get; set; }
     }
 }
