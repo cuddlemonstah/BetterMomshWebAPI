@@ -29,7 +29,7 @@ namespace BetterMomshWebAPI.Controllers
             {
                 ResponseType type = ResponseType.Success;
                 var result = _db.CreateBabyBook(userId, value);
-                if (result == "New Baby Journal Added")
+                if (result == "Baby Book Added")
                 {
                     return Ok(ResponseHandler.GetAppResponse(type, result));
                 }
@@ -46,14 +46,14 @@ namespace BetterMomshWebAPI.Controllers
             }
         }
 
-        [HttpPost("user={userId}/add/baby-journal")]
-        public IActionResult AddBabyJournal(Guid userId, [FromBody] JournalModel value)
+        [HttpPost("user={userId}/add/{babyBookId}&week={weekId}/baby-journal")]
+        public IActionResult AddBabyJournal(Guid userId, long babyBookId, long weekId, [FromBody] JournalModel value)
         {
             try
             {
                 ResponseType type = ResponseType.Success;
-                var result = _db.AddJournal(value);
-                if (result == "New Baby Journal Added")
+                var result = _db.AddJournal(userId, babyBookId, weekId, value);
+                if (result == "Journal Added")
                 {
                     return Ok(ResponseHandler.GetAppResponse(type, result));
                 }

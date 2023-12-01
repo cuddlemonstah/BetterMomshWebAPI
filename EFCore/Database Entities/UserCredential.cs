@@ -22,7 +22,7 @@ namespace BetterMomshWebAPI.EFCore
         public string Role { get; set; }
         public UserInformation UserInfo { get; set; }
         public RefreshToken RefreshTokens { get; set; }
-        public ICollection<BabyBook> BabyBooks { get; set; }
+        public IEnumerable<BabyBook> BabyBooks { get; set; }
         public ICollection<Trimester> Trimester { get; set; }
         public ICollection<Month> Month { get; set; }
         public ICollection<Week> Week { get; set; }

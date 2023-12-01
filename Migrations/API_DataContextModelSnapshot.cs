@@ -37,12 +37,12 @@ namespace BetterMomshWebAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("user_Id")
+                    b.Property<Guid>("user_id")
                         .HasColumnType("uuid");
 
                     b.HasKey("BookId");
 
-                    b.HasIndex("user_Id");
+                    b.HasIndex("user_id");
 
                     b.ToTable("BabyBook");
                 });
@@ -305,7 +305,7 @@ namespace BetterMomshWebAPI.Migrations
                 {
                     b.HasOne("BetterMomshWebAPI.EFCore.UserCredential", "UserCred")
                         .WithMany("BabyBooks")
-                        .HasForeignKey("user_Id")
+                        .HasForeignKey("user_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

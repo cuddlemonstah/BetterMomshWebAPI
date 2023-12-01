@@ -128,8 +128,7 @@ namespace BetterMomshWebAPI.Models
             return new BabyBookModel()
             {
                 Title = dataList.Title,
-                Created = dataList.Created,
-                user_id = dataList.user_Id
+                Created = dataList.Created
             };
         }
 
@@ -216,7 +215,7 @@ namespace BetterMomshWebAPI.Models
                     {
                         Title = babyBook.Title,
                         Created = DateOnly.FromDateTime(DateTime.Now),
-                        user_Id = babyBook.user_id
+                        user_id = userId
                     };
                     // Add the BabyBook entity to the database
                     _DataContext.BabyBook.Add(bBook);
@@ -227,7 +226,7 @@ namespace BetterMomshWebAPI.Models
                     {
                         Trimester trimester = new Trimester
                         {
-                            user_id = babyBook.user_id,
+                            user_id = userId,
                             BookId = bBook.BookId, // Set the foreign key to associate with the BabyBook
                             Trimesters = i + " Trimester",
                         };
@@ -239,7 +238,7 @@ namespace BetterMomshWebAPI.Models
                             int newMon = (i - 1) * 3 + j;
                             Month month = new Month
                             {
-                                user_id = babyBook.user_id,
+                                user_id = userId,
                                 BookId = bBook.BookId,
                                 Months = "Month " + newMon,
                                 TrimesterId = trimester.TrimesterId
@@ -253,7 +252,7 @@ namespace BetterMomshWebAPI.Models
                                 {
                                     Week week = new Week
                                     {
-                                        user_id = babyBook.user_id,
+                                        user_id = userId,
                                         BookId = bBook.BookId,
                                         week_number = "Week" + k,
                                         MonthId = month.MonthId
@@ -268,7 +267,7 @@ namespace BetterMomshWebAPI.Models
                                 {
                                     Week week = new Week
                                     {
-                                        user_id = babyBook.user_id,
+                                        user_id = userId,
                                         BookId = bBook.BookId,
                                         week_number = "Week" + k,
                                         MonthId = month.MonthId
@@ -298,13 +297,11 @@ namespace BetterMomshWebAPI.Models
         //
         //
         //
-        public string AddJournal(JournalModel journal)
+        public string AddJournal(Guid userId, long babyBookId, long weekId, JournalModel journal)
         {
-            var weekid = _DataContext.Week.FirstOrDefault(u => u.weekId.Equals(journal.weekId));
-            var bookid = _DataContext.BabyBook.FirstOrDefault(u => u.BookId.Equals(journal.BookId));
             DateTime localDateTime = DateTime.Now; // Your local DateTime
             DateTime utcDateTime = localDateTime.ToUniversalTime(); // Convert to UTC
-            if (bookid == null || weekid == null)
+            if (userId == null || babyBookId == null || weekId == null)
             {
                 return "Book Data doesn't exist";
             }
@@ -316,8 +313,9 @@ namespace BetterMomshWebAPI.Models
                     journalEntry = journal.JournalEntry,
                     Entry_Date = utcDateTime,
                     PhotoData = journal.PhotoData,
-                    BookId = journal.BookId,
-                    weekId = journal.weekId
+                    BookId = babyBookId,
+                    user_id = userId,
+                    weekId = weekId
                 };
                 _DataContext.Journal.Add(journ);
                 _DataContext.SaveChanges();

@@ -58,7 +58,7 @@ public class Startup
 
         services.AddDbContext<API_DataContext>(options =>
         {
-            options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"));
+            options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"), o => o.EnableRetryOnFailure());
         });
 
         services.AddCors(options =>

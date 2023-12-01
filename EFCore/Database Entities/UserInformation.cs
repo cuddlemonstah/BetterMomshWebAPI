@@ -7,7 +7,7 @@ namespace BetterMomshWebAPI.EFCore
     public class UserInformation
     {
         [Key]
-        [ForeignKey("userCred")]
+        [ForeignKey("UserCredential")]
         public Guid user_id { get; set; }
 
         [MaxLength(255)]

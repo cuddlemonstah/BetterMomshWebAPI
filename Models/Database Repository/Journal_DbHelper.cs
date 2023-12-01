@@ -75,7 +75,7 @@ namespace BetterMomshWebAPI.Models.Database_Repository
             try
             {
                 var BabyBooks = await _DataContext.BabyBook
-                    .Where(j => j.user_Id == UserID)
+                    .Where(j => j.user_id == UserID)
                     .Select(j => new BabyBook
                     {
                         BookId = j.BookId,

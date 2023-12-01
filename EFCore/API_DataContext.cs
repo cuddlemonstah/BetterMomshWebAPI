@@ -38,7 +38,7 @@ namespace BetterMomshWebAPI.EFCore
             modelBuilder.Entity<BabyBook>()
                 .HasOne(b => b.UserCred)
                 .WithMany(uc => uc.BabyBooks) // Assuming UserCred has a collection of BabyBooks 
-                .HasForeignKey(b => b.user_Id);
+                .HasForeignKey(b => b.user_id);
 
             // One-to-Many Relationship Between BabyBook and Trimester
             modelBuilder.Entity<Trimester>()
